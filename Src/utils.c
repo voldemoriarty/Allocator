@@ -3,7 +3,7 @@
 
 void dump_chunks(clist_t* clist, const char *name)
 {
-    printf("List: %s\n", name);
+    printf("List: %s. Size = %zu\n", name, clist->size);
     printf("============\n");
     for (size_t i = 0; i < clist->size; ++i) {
         chunk_t chunk = clist->chunks[i];

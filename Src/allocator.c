@@ -16,18 +16,11 @@ clist_t free_chunks = {
     .size = 1
 };
 
-static void clist_insert(clist_t* list, chunk_t* chunk)
+static void clist_sort_from_idx(clist_t* list, size_t i_sort)
 {
     size_t i;
 
-    // make sure we have space
-    assert(list->size < MAX_CHUNKS);
-    
-    // insert at the end of the list
-    list->chunks[list->size] = *chunk;
-
-    // re-sort the list
-    for (i = list->size; i > 0; --i) {
+    for (i = i_sort; i > 0; --i) {
         chunk_t prev = list->chunks[i - 1];
         chunk_t curr = list->chunks[i];
 
@@ -39,11 +32,25 @@ static void clist_insert(clist_t* list, chunk_t* chunk)
             break;
         }
     }
+}
+
+static void clist_insert(clist_t* list, chunk_t* chunk)
+{
+    size_t i;
+
+    // make sure we have space
+    assert(list->size < MAX_CHUNKS);
+    
+    // insert at the end of the list
+    list->chunks[list->size] = *chunk;
+
+    // re-sort the list
+    clist_sort_from_idx(list, list->size);
 
     list->size++;
 }
 
-void clist_remove(clist_t* list, size_t i_rem)
+static void clist_remove(clist_t* list, size_t i_rem)
 {
     size_t i;
 
@@ -54,6 +61,22 @@ void clist_remove(clist_t* list, size_t i_rem)
 
     for (i = i_rem; i < (list->size - 1); ++i) {
         list->chunks[i] = list->chunks[i + 1];
+    }
+
+    list->size--;
+}
+
+static void clist_resize_or_remove(clist_t* list, size_t i_rsz, size_t new_sz)
+{
+    size_t i;
+
+    if (new_sz == 0) {
+        clist_remove(list, i_rsz);
+    }
+    else {
+        list->chunks[i_rsz].size = new_sz;
+
+        clist_sort_from_idx(list, i_rsz);
     }
 }
 
