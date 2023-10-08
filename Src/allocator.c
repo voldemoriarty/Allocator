@@ -15,6 +15,8 @@ clist_t free_chunks = {
     .size = 1
 };
 
+clist_t defrag_temp = { 0 };
+
 static size_t clist_find_ptr(clist_t* list, void* ptr)
 {
     size_t i;
@@ -103,6 +105,19 @@ static void clist_resize_or_remove(clist_t* list, size_t i_rsz, chunk_t* new_chu
     }
 }
 
+static int defrag_cmp(const void* left, const void* right)
+{
+    const chunk_t* c_left = left;
+    const chunk_t* c_right = right;
+
+    if (c_left->base < c_right->base)
+        return -1;
+    else if (c_left->base > c_right->base)
+        return 1;
+    else
+        return 0;
+}
+
 void* allocate(size_t bytes)
 {
     size_t  i_free;
@@ -159,4 +174,36 @@ void deallocate(void* ptr)
 
     clist_remove(&alloc_chunks, i_alloc);
     clist_insert(&free_chunks, &freed_chunk);
+}
+
+void defragment()
+{
+    size_t i, i_free;
+
+    if (free_chunks.size == 1)
+        return;
+
+    defrag_temp.size = free_chunks.size;
+    memcpy(defrag_temp.chunks, free_chunks.chunks, free_chunks.size * sizeof(chunk_t));
+
+    qsort(defrag_temp.chunks, defrag_temp.size, sizeof(chunk_t), defrag_cmp);
+
+    free_chunks.chunks[0] = defrag_temp.chunks[0];
+    i_free = 0;
+
+    for (i = 1; i < defrag_temp.size; ++i) {
+        chunk_t* c_free = &free_chunks.chunks[i_free];
+        chunk_t* c_temp = &defrag_temp.chunks[i];
+
+        // check if can merge
+        if (c_free->base + c_free->size == c_temp->base) {
+            c_free->size += c_temp->size;
+        }
+        else {
+            // add new member
+            free_chunks.chunks[++i_free] = *c_temp;
+        }
+    }
+
+    free_chunks.size = i_free + 1;
 }

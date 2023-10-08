@@ -5,6 +5,7 @@
 
 extern clist_t alloc_chunks;
 extern clist_t free_chunks;
+extern clist_t defrag_temp;
 
 int main(int argc, char** argv)
 {
@@ -13,37 +14,29 @@ int main(int argc, char** argv)
 
     void* p_arr[10];
 
-    for (int i = 0; i < 10; ++i) {
-        p_arr[i] = allocate(i);
+    p_arr[0] = allocate(1);
+    p_arr[1] = allocate(3);
+    p_arr[2] = allocate(5);
+    p_arr[3] = allocate(1);
 
-        if (p_arr[i] == NULL) {
-            printf("Size %d allocation failed\n", i);
-        }
-
-        if (i % 2 == 0)
-            deallocate(p_arr[i]);
-    }
+    deallocate(p_arr[2]);
+    deallocate(p_arr[3]);
+    deallocate(p_arr[0]);
 
     dump_chunks(&alloc_chunks, "Alloc");
     dump_chunks(&free_chunks, "Free");
 
-    printf("=====================\n");
-    printf("=====================\n");
-    
-    for (int i = 0; i < 10; ++i) {
-        p_arr[i] = allocate(i);
-        
-        if (p_arr[i] == NULL) {
-            printf("Size %d allocation failed\n", i);
-        }
-        
-        if (i % 2 == 0)
-            deallocate(p_arr[i]);
-    }
+    defragment();
 
-    dump_chunks(&alloc_chunks, "Alloc");
     dump_chunks(&free_chunks, "Free");
 
+    deallocate(p_arr[1]);
+
+    dump_chunks(&free_chunks, "Free");
+
+    defragment();
+
+    dump_chunks(&free_chunks, "Free");
 
     exit(EXIT_SUCCESS);
 }
