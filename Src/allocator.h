@@ -4,8 +4,9 @@
 #include <stdlib.h>
 #include <memory.h>
 
-#define HEAP_CAP	(20)	// heap capacity in bytes
-#define MAX_CHUNKS	(10)	// max number of chunks
+#define HEAP_CAP     (2000) // heap capacity in bytes
+#define MAX_CHUNKS   (100)  // max number of chunks
+#define DEFRAG_THRES (50)
 
 typedef struct {
     uint8_t* base;
@@ -19,4 +20,4 @@ typedef struct {
 
 void *allocate(size_t bytes);
 void  deallocate(void* ptr);
-void defragment();
+void  defragment();

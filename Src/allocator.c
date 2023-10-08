@@ -174,6 +174,9 @@ void deallocate(void* ptr)
 
     clist_remove(&alloc_chunks, i_alloc);
     clist_insert(&free_chunks, &freed_chunk);
+
+    if (free_chunks.size > DEFRAG_THRES)
+        defragment();
 }
 
 void defragment()
