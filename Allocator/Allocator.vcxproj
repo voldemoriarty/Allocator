@@ -149,6 +149,9 @@
     <ClInclude Include="..\Src\allocator.h" />
     <ClInclude Include="..\Src\utils.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\README.md" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
