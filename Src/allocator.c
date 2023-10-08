@@ -66,15 +66,18 @@ static void clist_remove(clist_t* list, size_t i_rem)
     list->size--;
 }
 
-static void clist_resize_or_remove(clist_t* list, size_t i_rsz, size_t new_sz)
+static void clist_resize_or_remove(clist_t* list, size_t i_rsz, chunk_t* new_chunk)
 {
     size_t i;
+    size_t new_sz;
+
+    new_sz = new_chunk->size;
 
     if (new_sz == 0) {
         clist_remove(list, i_rsz);
     }
     else {
-        list->chunks[i_rsz].size = new_sz;
+        list->chunks[i_rsz] = *new_chunk;
 
         clist_sort_from_idx(list, i_rsz);
     }
