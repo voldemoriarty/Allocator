@@ -16,6 +16,18 @@ clist_t free_chunks = {
     .size = 1
 };
 
+static size_t clist_find_ptr(clist_t* list, void* ptr)
+{
+    size_t i;
+
+    for (i = 0; i < list->size; ++i) {
+        if (list->chunks[i].base == ptr)
+            break;
+    }
+
+    return i;
+}
+
 static size_t clist_find_size(clist_t* list, size_t min_size)
 {
     size_t i;
@@ -107,8 +119,6 @@ void* allocate(size_t bytes)
 
     // we could not find a chunk big enough
     if (i_free == free_chunks.size) {
-        errno = ENOMEM;
-        perror("Could not find a chunk big enough");
         return NULL;
     }
 
@@ -133,6 +143,21 @@ void* allocate(size_t bytes)
 
 void deallocate(void* ptr)
 {
-    (void)ptr;
-    UNIMPLEMENTED;
+    size_t  i_alloc;
+    chunk_t freed_chunk;
+
+    if (ptr == NULL)
+        return;
+
+    // find ptr in allocated list
+    i_alloc = clist_find_ptr(&alloc_chunks, ptr);
+
+    // check for illegal deallocation
+    assert(i_alloc < alloc_chunks.size);
+
+    // remove from allocated list and add to free list
+    freed_chunk = alloc_chunks.chunks[i_alloc];
+
+    clist_remove(&alloc_chunks, i_alloc);
+    clist_insert(&free_chunks, &freed_chunk);
 }
