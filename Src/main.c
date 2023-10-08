@@ -26,13 +26,7 @@ int main(int argc, char** argv)
     dump_chunks(&alloc_chunks, "Alloc");
     dump_chunks(&free_chunks, "Free");
 
-
-    dump_chunks(&free_chunks, "Free");
-
     deallocate(p_arr[1]);
-
-    dump_chunks(&free_chunks, "Free");
-
 
     dump_chunks(&free_chunks, "Free");
 
