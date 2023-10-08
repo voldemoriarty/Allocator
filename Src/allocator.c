@@ -1,5 +1,4 @@
 #include "allocator.h"
-#include "utils.h"
 #include <assert.h>
 
 uint8_t heap[HEAP_CAP] = { 0 };
