@@ -11,12 +11,13 @@ int main(int argc, char** argv)
     (void)argc;
     (void)argv;
 
-    void *p = allocate(2);
+    for (int i = 0; i < 3; ++i)
+        allocate(3 + i);
 
     dump_chunks(&alloc_chunks, "Alloc");
     dump_chunks(&free_chunks, "Free");
 
-    deallocate(p);
+    deallocate(NULL);
 
     exit(EXIT_SUCCESS);
 }

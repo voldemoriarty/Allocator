@@ -98,7 +98,7 @@ void* allocate(size_t bytes)
 
     // we could not find a chunk big enough
     if (i_free == free_chunks.size) {
-        errno = -ENOMEM;
+        errno = ENOMEM;
         perror("Could not find a chunk big enough");
         return NULL;
     }
