@@ -2,6 +2,7 @@
 #include "utils.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 
 extern clist_t alloc_chunks;
 extern clist_t free_chunks;
@@ -37,6 +38,9 @@ int main(int argc, char** argv)
     defragment();
 
     dump_chunks(&free_chunks, "Free");
+
+    assert(free_chunks.size == 1);
+    assert(free_chunks.chunks[0].size == HEAP_CAP);
 
     exit(EXIT_SUCCESS);
 }
