@@ -115,14 +115,10 @@ void* allocate(size_t bytes)
     free_chunk.size -= bytes;
     free_chunk.base += bytes;
 
-    // insert allocated chunk in list
+    // insert allocated chunk in list and update free_chunks
     clist_insert(&alloc_chunks, &to_allocate);
-    clist_remove(&free_chunks, i_free);
+    clist_resize_or_remove(&free_chunks, i_free, &free_chunk);
     
-    if (free_chunk.size > 0) {
-        clist_insert(&free_chunks, &free_chunk);
-    }
-
     return to_allocate.base;
 }
 
