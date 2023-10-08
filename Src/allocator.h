@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-#define HEAP_CAP	(10)	// heap capacity in bytes
+#define HEAP_CAP	(20)	// heap capacity in bytes
 #define MAX_CHUNKS	(10)	// max number of chunks
 
 typedef struct {
