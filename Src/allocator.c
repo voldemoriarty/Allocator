@@ -36,8 +36,6 @@ static void clist_sort_from_idx(clist_t* list, size_t i_sort)
 
 static void clist_insert(clist_t* list, chunk_t* chunk)
 {
-    size_t i;
-
     // make sure we have space
     assert(list->size < MAX_CHUNKS);
     
@@ -68,7 +66,6 @@ static void clist_remove(clist_t* list, size_t i_rem)
 
 static void clist_resize_or_remove(clist_t* list, size_t i_rsz, chunk_t* new_chunk)
 {
-    size_t i;
     size_t new_sz;
 
     new_sz = new_chunk->size;
