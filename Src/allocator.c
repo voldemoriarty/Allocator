@@ -16,6 +16,18 @@ clist_t free_chunks = {
     .size = 1
 };
 
+static size_t clist_find(clist_t* list, size_t min_size)
+{
+    size_t i;
+
+    for (i = 0; i < list->size; ++i) {
+        if (list->chunks[i].size >= min_size)
+            break;
+    }
+
+    return i;
+}
+
 static void clist_sort_from_idx(clist_t* list, size_t i_sort)
 {
     size_t i;
@@ -91,10 +103,7 @@ void* allocate(size_t bytes)
     assert(alloc_chunks.size < MAX_CHUNKS);
 
     // find the free chunk that fits our size
-    for (i_free = 0; i_free < free_chunks.size; ++i_free) {
-        if (free_chunks.chunks[i_free].size >= bytes)
-            break;
-    }
+    i_free = clist_find(&free_chunks, bytes);
 
     // we could not find a chunk big enough
     if (i_free == free_chunks.size) {
