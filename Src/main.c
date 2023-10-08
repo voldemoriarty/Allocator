@@ -6,7 +6,6 @@
 
 extern clist_t alloc_chunks;
 extern clist_t free_chunks;
-extern clist_t defrag_temp;
 
 int main(int argc, char** argv)
 {
@@ -27,7 +26,6 @@ int main(int argc, char** argv)
     dump_chunks(&alloc_chunks, "Alloc");
     dump_chunks(&free_chunks, "Free");
 
-    defragment();
 
     dump_chunks(&free_chunks, "Free");
 
@@ -35,7 +33,6 @@ int main(int argc, char** argv)
 
     dump_chunks(&free_chunks, "Free");
 
-    defragment();
 
     dump_chunks(&free_chunks, "Free");
 

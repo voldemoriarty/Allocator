@@ -1,5 +1,6 @@
 #include "allocator.h"
 #include <assert.h>
+#include <stdbool.h>
 
 uint8_t heap[HEAP_CAP] = { 0 };
 
@@ -14,8 +15,6 @@ clist_t free_chunks = {
     },
     .size = 1
 };
-
-clist_t defrag_temp = { 0 };
 
 static size_t clist_find_ptr(clist_t* list, void* ptr)
 {
@@ -41,26 +40,55 @@ static size_t clist_find_size(clist_t* list, size_t min_size)
     return i;
 }
 
-static void clist_sort_from_idx(clist_t* list, size_t i_sort)
+static size_t clist_sort_from_idx(clist_t* list, size_t i_sort)
+{
+    size_t i;
+    bool   is_first, is_last, forward;
+
+    is_first = i_sort == 0;
+    is_last  = i_sort == (list->size - 1);
+    forward  = false;
+    i = i_sort;
+
+    if (!is_last) {
+        for (i = i_sort; i < list->size; ++i) {
+            chunk_t next = list->chunks[i + 1];
+            chunk_t curr = list->chunks[i];
+
+            if (next.base < curr.base) {
+                list->chunks[i + 1] = curr;
+                list->chunks[i] = next;
+                forward = true;
+            }
+            else {
+                break;
+            }
+        }
+    }
+
+    if (!is_first && !forward) {
+        for (i = i_sort; i > 0; --i) {
+            chunk_t prev = list->chunks[i - 1];
+            chunk_t curr = list->chunks[i];
+
+            if (prev.base > curr.base) {
+                list->chunks[i - 1] = curr;
+                list->chunks[i] = prev;
+            }
+            else {
+                break;
+            }
+        }
+    }
+
+    return i;
+}
+
+static size_t clist_insert(clist_t* list, chunk_t* chunk)
 {
     size_t i;
 
-    for (i = i_sort; i > 0; --i) {
-        chunk_t prev = list->chunks[i - 1];
-        chunk_t curr = list->chunks[i];
-
-        if (prev.size > curr.size) {
-            list->chunks[i - 1] = curr;
-            list->chunks[i] = prev;
-        }
-        else {
-            break;
-        }
-    }
-}
-
-static void clist_insert(clist_t* list, chunk_t* chunk)
-{
+    i = SIZE_MAX;
     // make sure we have space
     assert(list->size < MAX_CHUNKS);
     
@@ -68,22 +96,19 @@ static void clist_insert(clist_t* list, chunk_t* chunk)
     list->chunks[list->size] = *chunk;
 
     // re-sort the list
-    clist_sort_from_idx(list, list->size);
+    i = clist_sort_from_idx(list, list->size);
 
     list->size++;
+
+    return i;
 }
 
 static void clist_remove(clist_t* list, size_t i_rem)
 {
     size_t i;
 
-    if (i_rem + 1 == list->size) {
-        list->size--;
-        return;
-    }
-
-    for (i = i_rem; i < (list->size - 1); ++i) {
-        list->chunks[i] = list->chunks[i + 1];
+    for (i = i_rem + 1; i < list->size; ++i) {
+        list->chunks[i - 1] = list->chunks[i];
     }
 
     list->size--;
@@ -105,17 +130,39 @@ static void clist_resize_or_remove(clist_t* list, size_t i_rsz, chunk_t* new_chu
     }
 }
 
-static int defrag_cmp(const void* left, const void* right)
+static bool chunks_can_merge_ord(chunk_t* a, chunk_t* b)
 {
-    const chunk_t* c_left = left;
-    const chunk_t* c_right = right;
+    return ((a->base + a->size) == b->base);
+}
 
-    if (c_left->base < c_right->base)
-        return -1;
-    else if (c_left->base > c_right->base)
-        return 1;
-    else
-        return 0;
+static void clist_merge_cont_blks(clist_t* list, size_t i_insert)
+{
+    bool     can_merge_front, can_merge_back;
+    chunk_t* p_chunk, *p_front, *p_back;
+    size_t   i;
+
+    p_chunk = &list->chunks[i_insert];
+    p_front = p_chunk + 1;
+    p_back  = p_chunk - 1;
+
+    can_merge_front = ((i_insert + 1) < list->size) && chunks_can_merge_ord(p_chunk, p_front);
+    can_merge_back = (i_insert > 0) && chunks_can_merge_ord(p_back, p_chunk);
+
+    if (can_merge_front && !can_merge_back) {
+        p_chunk->size += p_front->size;
+        clist_remove(list, i_insert + 1);
+    }
+    else if (can_merge_back && !can_merge_front) {
+        p_back->size += p_chunk->size;
+        clist_remove(list, i_insert);
+    }
+    else if (can_merge_back && can_merge_front) {
+        p_back->size += p_chunk->size + p_front->size;
+        for (i = i_insert + 2; i < list->size; ++i) {
+            list->chunks[i - 2] = list->chunks[i];
+        }
+        list->size -= 2;
+    }
 }
 
 void* allocate(size_t bytes)
@@ -128,7 +175,7 @@ void* allocate(size_t bytes)
 
     assert(alloc_chunks.size < MAX_CHUNKS);
 
-    // find the free chunk that fits our size
+    // find a free chunk that fits our size
     i_free = clist_find_size(&free_chunks, bytes);
 
     // we could not find a chunk big enough
@@ -148,8 +195,10 @@ void* allocate(size_t bytes)
     free_chunk.size -= bytes;
     free_chunk.base += bytes;
 
-    // insert allocated chunk in list and update free_chunks
-    clist_insert(&alloc_chunks, &to_allocate);
+    // insert allocated chunk in list
+    alloc_chunks.chunks[alloc_chunks.size++] = to_allocate;
+
+    // update free chunks
     clist_resize_or_remove(&free_chunks, i_free, &free_chunk);
     
     return to_allocate.base;
@@ -157,7 +206,7 @@ void* allocate(size_t bytes)
 
 void deallocate(void* ptr)
 {
-    size_t  i_alloc;
+    size_t  i_alloc, i_free;
     chunk_t freed_chunk;
 
     if (ptr == NULL)
@@ -173,40 +222,7 @@ void deallocate(void* ptr)
     freed_chunk = alloc_chunks.chunks[i_alloc];
 
     clist_remove(&alloc_chunks, i_alloc);
-    clist_insert(&free_chunks, &freed_chunk);
+    i_free = clist_insert(&free_chunks, &freed_chunk);
 
-    if (free_chunks.size > DEFRAG_THRES)
-        defragment();
-}
-
-void defragment()
-{
-    size_t i, i_free;
-
-    if (free_chunks.size == 1)
-        return;
-
-    defrag_temp.size = free_chunks.size;
-    memcpy(defrag_temp.chunks, free_chunks.chunks, free_chunks.size * sizeof(chunk_t));
-
-    qsort(defrag_temp.chunks, defrag_temp.size, sizeof(chunk_t), defrag_cmp);
-
-    free_chunks.chunks[0] = defrag_temp.chunks[0];
-    i_free = 0;
-
-    for (i = 1; i < defrag_temp.size; ++i) {
-        chunk_t* c_free = &free_chunks.chunks[i_free];
-        chunk_t* c_temp = &defrag_temp.chunks[i];
-
-        // check if can merge
-        if (c_free->base + c_free->size == c_temp->base) {
-            c_free->size += c_temp->size;
-        }
-        else {
-            // add new member
-            free_chunks.chunks[++i_free] = *c_temp;
-        }
-    }
-
-    free_chunks.size = i_free + 1;
+    clist_merge_cont_blks(&free_chunks, i_free);
 }
