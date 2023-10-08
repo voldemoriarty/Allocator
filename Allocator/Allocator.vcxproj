@@ -147,6 +147,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Src\allocator.h" />
+    <ClInclude Include="..\Src\allocator_types.h" />
     <ClInclude Include="..\Src\utils.h" />
   </ItemGroup>
   <ItemGroup>

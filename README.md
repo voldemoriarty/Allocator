@@ -4,9 +4,11 @@ A toy memory allocator suitable for embedded environments which can also reuse f
 memory. I made this to learn about the internals of `malloc` and `free`. 
  - Can allocate arbitrary number of bytes instead of fixed chunks
  - Can reuse the deallocated memory for reallocation
+ - Standalone. Uses a statically allocated array as the memory chunk and can work without stdlib
+ - Is suitable for managing tightly coupled memory in embedded devices
 
 ## Limitations
- 1. Can allocate a fixed maximum number of chunks
+ 1. Can allocate a fixed maximum number of chunks. Enough space for tracking these chunks have to be statically allocated.
  2. `allocate` is `O(n)` where `n` is number of free chunks
  3. `deallocate` is `O(n)` where `n` is number of allocated chunks + number of free chunks
 
