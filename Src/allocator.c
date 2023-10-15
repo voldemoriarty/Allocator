@@ -185,8 +185,10 @@ void* allocate(size_t bytes)
     // we found a chunk big enough
     // take bytes from it and insert it to alloc_chunks
     free_chunk = free_chunks.chunks[i_free];
-    to_allocate.base = free_chunk.base;
-    to_allocate.size = bytes;
+    to_allocate = (chunk_t) { 
+        .base = free_chunk.base, 
+        .size = bytes 
+    };
 
     // remove bytes from free_chunk
     // bytes <= free_chunk.size

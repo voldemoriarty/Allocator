@@ -12,7 +12,7 @@ int main(int argc, char** argv)
     (void)argc;
     (void)argv;
 
-    void* p_arr[10];
+    void* p_arr[10] = { 0 };
 
     p_arr[0] = allocate(1);
     p_arr[1] = allocate(3);

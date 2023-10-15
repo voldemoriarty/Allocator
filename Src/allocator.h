@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdint.h>
+
 #define HEAP_CAP     (2000) // heap capacity in bytes
 #define MAX_CHUNKS   (100)  // max number of chunks
 
