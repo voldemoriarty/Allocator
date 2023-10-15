@@ -88,7 +88,6 @@ static size_t clist_insert(clist_t* list, chunk_t* chunk)
 {
     size_t i;
 
-    i = SIZE_MAX;
     // make sure we have space
     assert(list->size < MAX_CHUNKS);
     
@@ -224,5 +223,6 @@ void deallocate(void* ptr)
     clist_remove(&alloc_chunks, i_alloc);
     i_free = clist_insert(&free_chunks, &freed_chunk);
 
+    // merge contiguous blocks to keep heap defragmented
     clist_merge_cont_blks(&free_chunks, i_free);
 }
