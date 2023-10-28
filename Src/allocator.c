@@ -30,14 +30,22 @@ static size_t clist_find_ptr(clist_t* list, void* ptr)
 
 static size_t clist_find_size(clist_t* list, size_t min_size)
 {
-    size_t i;
-
+    size_t i, i_min, c_size;
+    
+    i_min = 0;
     for (i = 0; i < list->size; ++i) {
-        if (list->chunks[i].size >= min_size)
-            break;
+        c_size = list->chunks[i].size;
+        if (c_size >= min_size && (c_size < list->chunks[i_min].size)) {
+            i_min = i;
+        }
     }
 
-    return i;
+    if (list->chunks[i_min].size >= min_size) {
+        return i_min;
+    }
+    else {
+        return list->size;
+    }
 }
 
 static size_t clist_sort_from_idx(clist_t* list, size_t i_sort)
