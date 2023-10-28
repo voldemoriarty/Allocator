@@ -12,5 +12,6 @@
     fprintf(stderr, "%s:%d %s() is not implemented.\n", __FILENAME__, __LINE__, __func__); \
     exit(EXIT_FAILURE);
 
-
-void dump_chunks(clist_t* chunks, const char *name);
+void dump_chunks(clist_t* clist, const char* name);
+void dump_free_chunks();
+void dump_alloc_chunks();

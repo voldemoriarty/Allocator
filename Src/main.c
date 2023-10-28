@@ -25,16 +25,17 @@ int main(int argc, char** argv)
     deallocate(p_arr[2]);
     deallocate(p_arr[4]);
 
-    dump_chunks(&alloc_chunks, "Alloc");
-    dump_chunks(&free_chunks, "Free");
+    dump_free_chunks();
+    dump_alloc_chunks();
 
     p_arr[6] = allocate(1);
-    dump_chunks(&free_chunks, "Free");
+    dump_free_chunks();
 
     deallocate(p_arr[1]);
     deallocate(p_arr[3]);
     deallocate(p_arr[5]);
     deallocate(p_arr[6]);
+
     assert(free_chunks.size == 1);
     assert(free_chunks.chunks[0].size == HEAP_CAP);
 
