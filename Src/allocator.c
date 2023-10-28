@@ -2,6 +2,8 @@
 #include <assert.h>
 #include <stdbool.h>
 
+#define ALLOC_ASSERT assert
+
 uint8_t heap[HEAP_CAP] = { 0 };
 
 clist_t alloc_chunks = {
@@ -97,7 +99,7 @@ static size_t clist_insert(clist_t* list, chunk_t* chunk)
     size_t i;
 
     // make sure we have space
-    assert(list->size < MAX_CHUNKS);
+    ALLOC_ASSERT(list->size < MAX_CHUNKS);
     
     // insert at the end of the list
     list->chunks[list->size] = *chunk;
@@ -180,7 +182,7 @@ void* allocate(size_t bytes)
     if (bytes == 0)
         return NULL;
 
-    assert(alloc_chunks.size < MAX_CHUNKS);
+    ALLOC_ASSERT(alloc_chunks.size < MAX_CHUNKS);
 
     // find a free chunk that fits our size
     i_free = clist_find_size(&free_chunks, bytes);
@@ -225,7 +227,7 @@ void deallocate(void* ptr)
     i_alloc = clist_find_ptr(&alloc_chunks, ptr);
 
     // check for illegal deallocation
-    assert(i_alloc < alloc_chunks.size);
+    ALLOC_ASSERT(i_alloc < alloc_chunks.size);
 
     // remove from allocated list and add to free list
     freed_chunk = alloc_chunks.chunks[i_alloc];
