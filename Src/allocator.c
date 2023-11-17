@@ -106,7 +106,6 @@ static size_t clist_insert(clist_t* list, chunk_t* chunk)
 
     // re-sort the list
     i = clist_sort_from_idx(list, list->size);
-
     list->size++;
 
     return i;
@@ -134,7 +133,6 @@ static void clist_resize_or_remove(clist_t* list, size_t i_rsz, chunk_t* new_chu
     }
     else {
         list->chunks[i_rsz] = *new_chunk;
-
         clist_sort_from_idx(list, i_rsz);
     }
 }
