@@ -1,0 +1,17 @@
+[
+    {
+        "directory": ".",
+        "arguments": ["clang", "-ISrc", "main.c", "-o", "main.o"],
+        "file": "main.c"
+    },
+    {
+        "directory": ".",
+        "arguments": ["clang", "-ISrc", "allocator.c", "-o", "allocator.o"],
+        "file": "allocator.c"
+    },
+    {
+        "directory": ".",
+        "arguments": ["clang", "-ISrc", "utls.c", "-o", "utls.o"],
+        "file": "utls.c"
+    }
+]
