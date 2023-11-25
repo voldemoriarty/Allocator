@@ -13,5 +13,5 @@
     exit(EXIT_FAILURE);
 
 void dump_chunks(clist_t* clist, const char* name);
-void dump_free_chunks();
-void dump_alloc_chunks();
+void dump_free_chunks(heap *h);
+void dump_alloc_chunks(heap *h);

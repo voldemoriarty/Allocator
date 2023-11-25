@@ -8,19 +8,7 @@ memory. I made this to learn about the internals of `malloc` and `free`.
  - Is suitable for managing tightly coupled memory in embedded devices
 
 ## Usage
- - Copy the following files to your project
-    - `allocator.c`
-    - `allocator.h`
-    - `allocator_types.h`
-
-   By default, a static buffer is used as heap. If you want to change it, 
-     - In `allocator.c`, change the line 
-        ```C
-        uint8_t heap[HEAP_CAP] = { 0 };
-        ```
-        Make `heap` point to region of memory you wish to use as heap
-     - In `allocator.h` update `HEAP_CAP` to size of memory you want to use as heap
-     - In `allocator.h` update `MAX_CHUNKS` according to your need
+ - For usage take a look at `main.c` file. 
 
 ## Limitations
  1. Can allocate a fixed maximum number of chunks. Enough space for tracking these chunks have to be statically allocated.

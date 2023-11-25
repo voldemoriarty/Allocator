@@ -1,22 +1,9 @@
+#include "allocator.h"
 #include "allocator_types.h"
 #include <assert.h>
 #include <stdbool.h>
 
 #define ALLOC_ASSERT assert
-
-uint8_t heap[HEAP_CAP] = { 0 };
-
-clist_t alloc_chunks = {
-    .chunks = {0},
-    .size = 0
-};
-
-clist_t free_chunks = {
-    .chunks = {
-        [0] = {.base = heap, .size = sizeof heap}
-    },
-    .size = 1
-};
 
 static size_t clist_find_ptr(clist_t* list, void* ptr)
 {
@@ -172,7 +159,15 @@ static void clist_merge_cont_blks(clist_t* list, size_t i_insert)
     }
 }
 
-void* allocate(size_t bytes)
+void init_heap(heap *h, uint8_t *heap_base, size_t heap_size)
+{
+    h->alloc_chunks.size = 0;
+    h->free_chunks.size = 1;
+    h->free_chunks.chunks[0].base = heap_base;
+    h->free_chunks.chunks[0].size = heap_size;
+}
+
+void* allocate(heap *h, size_t bytes)
 {
     size_t  i_free;
     chunk_t to_allocate, free_chunk;
@@ -180,19 +175,19 @@ void* allocate(size_t bytes)
     if (bytes == 0)
         return NULL;
 
-    ALLOC_ASSERT(alloc_chunks.size < MAX_CHUNKS);
+    ALLOC_ASSERT(h->alloc_chunks.size < MAX_CHUNKS);
 
     // find a free chunk that fits our size
-    i_free = clist_find_size(&free_chunks, bytes);
+    i_free = clist_find_size(&h->free_chunks, bytes);
 
     // we could not find a chunk big enough
-    if (i_free == free_chunks.size) {
+    if (i_free == h->free_chunks.size) {
         return NULL;
     }
 
     // we found a chunk big enough
     // take bytes from it and insert it to alloc_chunks
-    free_chunk = free_chunks.chunks[i_free];
+    free_chunk = h->free_chunks.chunks[i_free];
     to_allocate = (chunk_t) { 
         .base = free_chunk.base, 
         .size = bytes 
@@ -205,15 +200,15 @@ void* allocate(size_t bytes)
     free_chunk.base += bytes;
 
     // insert allocated chunk in list
-    alloc_chunks.chunks[alloc_chunks.size++] = to_allocate;
+    h->alloc_chunks.chunks[h->alloc_chunks.size++] = to_allocate;
 
     // update free chunks
-    clist_resize_or_remove(&free_chunks, i_free, &free_chunk);
+    clist_resize_or_remove(&h->free_chunks, i_free, &free_chunk);
     
     return to_allocate.base;
 }
 
-void deallocate(void* ptr)
+void deallocate(heap *h, void* ptr)
 {
     size_t  i_alloc, i_free;
     chunk_t freed_chunk;
@@ -222,17 +217,17 @@ void deallocate(void* ptr)
         return;
 
     // find ptr in allocated list
-    i_alloc = clist_find_ptr(&alloc_chunks, ptr);
+    i_alloc = clist_find_ptr(&h->alloc_chunks, ptr);
 
     // check for illegal deallocation
-    ALLOC_ASSERT(i_alloc < alloc_chunks.size);
+    ALLOC_ASSERT(i_alloc < h->alloc_chunks.size);
 
     // remove from allocated list and add to free list
-    freed_chunk = alloc_chunks.chunks[i_alloc];
+    freed_chunk = h->alloc_chunks.chunks[i_alloc];
 
-    clist_remove(&alloc_chunks, i_alloc);
-    i_free = clist_insert(&free_chunks, &freed_chunk);
+    clist_remove(&h->alloc_chunks, i_alloc);
+    i_free = clist_insert(&h->free_chunks, &freed_chunk);
 
     // merge contiguous blocks to keep heap defragmented
-    clist_merge_cont_blks(&free_chunks, i_free);
+    clist_merge_cont_blks(&h->free_chunks, i_free);
 }
