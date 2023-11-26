@@ -5,6 +5,10 @@
 
 #define ALLOC_ASSERT assert
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 static size_t clist_find_ptr(clist_t* list, void* ptr)
 {
     size_t i;
@@ -231,3 +235,7 @@ void deallocate(heap *h, void* ptr)
     // merge contiguous blocks to keep heap defragmented
     clist_merge_cont_blks(&h->free_chunks, i_free);
 }
+
+#ifdef __cplusplus
+}
+#endif
