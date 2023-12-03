@@ -28,9 +28,9 @@ typedef struct
 extern "C" {
 #endif
 
-void init_heap(heap *h, uint8_t *heap_base, size_t heap_size);
-void *allocate(heap *h, size_t bytes);
-void  deallocate(heap *h, void* ptr);
+void   init_heap(heap *h, uint8_t *heap_base, size_t heap_size);
+void * allocate(heap *h, size_t bytes);
+void   deallocate(heap *h, void* ptr);
 
 #ifdef __cplusplus
 }
